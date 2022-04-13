@@ -1,44 +1,73 @@
 package com.qa.demo.service;
 
-import java.util.ArrayList;
-import java.util.List;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import com.qa.demo.domain.Person;
+import com.qa.demo.repo.PersonRepo;
 
 @Service // stores the main business logic of the application
-public class PersonService {
+public class PersonService implements ServiceIF<Person>{
 
-	// LIST - we haven't got a DB yet so we need to store date somewhere
-	private List<Person> peeps = new ArrayList<>();
-
+	private PersonRepo repo;
 	
+	@Autowired
+	public PersonService(PersonRepo repo) {
+		super();
+		this.repo=repo;
+	}
+
 //CRUD	
+	// INSERT INTO Person;
 	public Person createPerson(Person p) {
-		this.peeps.add(p);
-		Person created = this.peeps.get(this.peeps.size() - 1);
+		Person created = this.repo.save(p);
 		return created;
 	}
-
-	public List<Person> getAllPeeps() {
-		return this.peeps;
+   // SELECT * FROM Person;
+	public List<Person> getAll() {
+		return this.repo.findAll();
+	}
+    // SELECT * FROM Person WHERE ID =
+	public Person getOne(Integer id) {
+		Optional<Person> found = this.repo.findById(id);
+		return found.get();
 	}
 
-	public Person getPerson(Integer id) {
-		return this.peeps.get(id);
+	// UPDATE
+	public Person replace(Integer id, Person newPerson) {
+		Person existing = this.repo.findById(id).get();
+		existing.setAge(newPerson.getAge());
+		existing.setHeight(newPerson.getHeight());
+		existing.setName(newPerson.getName());
+		Person updated = this.repo.save(existing);
+		return updated;
 	}
 
-	public Person replacePerson(Integer id, Person newPerson) {
-		Person body = this.peeps.set(id, newPerson);
-		return body;
+	// DELETE FROM PERSON WHERE ID =
+	public void remove(@PathVariable Integer id) {
+		this.repo.deleteById(id);
+	}
+		
+	// SELECT * FROM Person WHERE name= 
+	public List<Person> getPeepsByName(String name) {
+		List<Person> found = this.repo.findByNameIgnoreCase(name);
+		return found;
+	}
+	// SELECT * FROM Person WHERE age= 
+	public List<Person> getPeepsByAge(Integer age) {
+		List<Person> found = this.repo.findByAge(age);
+		return found;
 	}
 
-	public void removePerson(@PathVariable Integer id) {
-		this.peeps.remove(id.intValue());
-
+	@Override
+	public Person create(Person t) {
+		// TODO Auto-generated method stub
+		return null;
 	}
-}
-
-
+	
+	}
